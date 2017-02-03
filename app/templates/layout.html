@@ -1,0 +1,96 @@
+{%extends "bootstrap/base.html" %}
+{% from "_macros.html" import nav_link with context %}
+{% block title %}Little Blog-Pump{% endblock %}
+
+{% block head %}
+{{super()}}
+<link rel='shortcut icon' href="{{url_for('static',filename='favicon.ico')}}"
+	type='image/x-icon'>
+<link rel='icon' href="{{url_for('static',filename='favicon.ico')}}"
+	type='image/x-icon'>
+<link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='styles.css') }}">
+{% endblock %}
+{% block captcha %}{% endblock %}
+
+{% block navbar %}
+<nav class="navbar navbar-inverse navbar-fixed-top" role = "navigation">
+	<div class="container">
+		<div class="navbar-header">
+			<button type="button" class="navbar-toggle"
+			data-toggle = "collapse" data-target=".navbar-collapse">
+				<span class ="sr-only">Toggle navigation</span>
+				<span class ="icon-bar"></span>
+				<span class ="icon-bar"></span>
+				<span class ="icon-bar"></span>
+			</button>
+			<a class="navbar-brand" href ="#"> Pump
+			</a>
+		</div>
+		<div class="navbar-collapse collapse">
+			<ul class="nav navbar-nav">
+				<li><a href="{{url_for('main.index')}}"><span class="glyphicon glyphicon-home"></span>主页</a></li>
+				<li class="dropdown">
+					<a class="dropdown-toggle" data-toggle="dropdown" href="#">
+						<span class="glyphicon glyphicon-leaf"></span>推文<span class="caret"></span>
+					</a>
+					<ul class="dropdown-menu">
+						<li><a href="#"><span class="glyphicon glyphicon-th-list"></span> 所有推文</a></li>
+						<li><a href="#"><span class="glyphicon glyphicon-heart"></span>  关注人推文</a></li>
+						<li><a href="#"><span class="glyphicon glyphicon-fire"></span> 热门推文</a></li>
+						<li class="divider"></li>
+						<li><a href="#"><span class="glyphicon glyphicon-pencil"></span> 个人推文</a></li>
+					</ul>
+				</li>
+			</ul>
+			<ul class ='nav navbar-nav navbar-right'>
+				<form class="navbar-form navbar-left" role="search" action="#" method="post">
+					<div class="form-group">
+					<input type="text" class="form-control" placeholder="请输入关键字" name="Search">
+					</div>
+					<button type="submit" class="btn btn-default"><span class="glyphicon glyphicon-search"></span> 搜索</button>
+				</form>
+				{% if current_user.is_authenticated %}
+				<li><a href="{{url_for('auth.logout')}}"><span class="glyphicon glyphicon-off"></span>登出</a></li>
+				{% else %}
+				<li><a href="{{url_for('auth.login')}}"><span class="glyphicon glyphicon-user"> 登录</a></li>
+				{%endif%}
+			</ul>
+			{% if current_user.is_authenticated%}
+			<ul class="nav navbar-nav navbar-right">
+				<li><a href="#"><span class="glyphicon glyphicon-user"></span> 用户</a></li>
+
+				<li><a href="#"><span class="glyphicon glyphicon-comment"></span> 管理评论</a></li>
+
+			</ul>
+			{%endif%}
+			<ul class="nav navbar-nav ">
+				{%if current_user.is_authenticated%}
+				<li>
+					<a href="#">
+					Profile
+					</a>
+				</li>
+				{%endif%}
+			</ul>
+		</div>
+	</div>
+</nav>
+{%endblock %}
+
+{% block content %}
+<div class="container">
+	{%for category,message in get_flashed_messages(with_categories=True) %}
+	<div class='alert alert-{{category}}' id = 'dismiss-alert'>
+		<button type='button' class='close' data-dismiss='alert'>&times;</button>
+		{{message}}
+		</div>
+		{%endfor %}
+	{% block page_content %}{% endblock %}
+</div>
+{%endblock %}
+
+{%block scripts %}
+{{super()}}
+{{moment.include_moment()}}
+{{ moment.lang("zh-CN") }}
+{%endblock %}

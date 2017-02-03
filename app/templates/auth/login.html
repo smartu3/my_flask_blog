@@ -1,0 +1,21 @@
+{% extends 'layout.html' %}
+{% import "bootstrap/wtf.html" as wtf %}
+{% block title %}登录{% endblock %}
+{% block page_content %}
+<div class = "container">
+	<div class = "row">
+		<div class="col-md-6">
+			<div class = "page-header">
+				<h1>登录</h1>
+				{{wtf.quick_form(l_form)}}
+			</div>
+		</div>
+		<div class="col-md-6">
+			<div class = "page-header">
+			<h1>注册</h1>
+			{{wtf.quick_form(r_form)}}
+			</div>
+		</div>
+	</div>
+</div>
+{% endblock %}

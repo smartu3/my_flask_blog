@@ -6,7 +6,7 @@ __pycache__/
 
 # Windows
 
-
+*.sqlite
 # C extensions
 *.so
 
