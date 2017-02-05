@@ -1,0 +1,12 @@
+{%extends 'layout.html' %}
+{%import "bootstrap/wtf.html" as wtf %}
+{% block title%}重置邮箱{%endblock%}
+
+{%block page_content %}
+<div class = "page-header">
+	<h1>现在你可以进行邮箱重置。</h1>
+</div>
+<div class="col-md-4">
+	{{wtf.quick_form(form)}}
+</div>
+{%endblock%}

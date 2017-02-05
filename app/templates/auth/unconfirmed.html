@@ -1,0 +1,12 @@
+{%extends 'layout.html' %}
+
+{%block page_content %}
+<div class = "page-header">
+	<h1>Hi,{{current_user.username}}</h1>
+	<h2>你还没有确认你的账户.</h2>
+	<p>当你注册时邮箱会收到一封带有注册链接的邮件，点击该注册链接即可实现账户确认.</p>
+	<p>若需要一封新的确认邮件<a href = "{{url_for('auth.resend_confirmation')}}">请点击</a>
+</div>
+
+
+{%endblock%}
