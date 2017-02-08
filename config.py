@@ -8,9 +8,9 @@ class Config:
 	SQLALCHEMY_COMMIT_ON_TEARDOWN = True
 	BLOG_MAIL_SUBJECT_PREFIX='[Welcome]'
 	BLOG_MAIL_SENDER = '123389602@qq.com'
-	BLOG_ADMIN= os.environ.get('BLOG_ADMIN') or '123389602@qq.com'
+	BLOG_ADMIN= os.environ.get('BLOG_ADMIN') or 'zhze93@qq.com' or '123389602@qq.com'
 	SQLALCHEMY_TRACK_MODIFICATIONS = True
-
+	UPLOADED_GRAVATORS_DEST = os.getcwd() + '/gravators'
 	@staticmethod
 	def init_app(app):
 		pass

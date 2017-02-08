@@ -57,21 +57,19 @@
 			</ul>
 			{% if current_user.is_authenticated%}
 			<ul class="nav navbar-nav navbar-right">
-				<li><a href="{{url_for('auth.modify')}}"><span class="glyphicon glyphicon-user"></span> 用户</a></li>
-
-				<li><a href="#"><span class="glyphicon glyphicon-comment"></span> 管理评论</a></li>
-
-			</ul>
-			{%endif%}
-			<ul class="nav navbar-nav ">
-				{%if current_user.is_authenticated%}
-				<li>
-					<a href="#">
-					Profile
-					</a>
+				<li class="dropdown">
+				<a class="dropdown-toggle" data-toggle="dropdown" href="#">
+				<span class="glyphicon glyphicon-user"></span> 用户<span class="caret"></span>
+				<ul class="dropdown-menu">
+				<li><a href="{{url_for('main.user',username=current_user.username)}}">头像</a></li>
+				<li><a href="{{url_for('main.profiel_edit',username=current_user.username)}}">详细资料</a></li>
+				</a>
 				</li>
-				{%endif%}
 			</ul>
+				{% if current_user.can(Permission.MODERATE_COMMENTS) %}
+				<li><a href="#"><span class="glyphicon glyphicon-comment"></span> 管理评论</a></li>
+				{% endif %}
+			{%endif%}
 		</div>
 	</div>
 </nav>

@@ -1,7 +1,7 @@
 #-*- coding:utf-8 -*-
 
 from flask_wtf import FlaskForm
-from wtforms import StringField,PasswordField,BooleanField,SubmitField
+from wtforms import StringField,PasswordField,BooleanField,SubmitField,TextAreaField
 from wtforms.validators import Required,Length,Email,EqualTo
 from wtforms import ValidationError
 from ..models import User
@@ -50,3 +50,4 @@ class ModifyEmailForm(FlaskForm):
 	email=StringField(u"新邮箱地址",validators=[Required(),Email(),EqualTo('email2',message='Email must match')])
 	email2=StringField(u"确认你的邮箱地址。",validators=[Required(),Email()])
 	submit=SubmitField(u'提交')
+

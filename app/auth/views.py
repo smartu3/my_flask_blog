@@ -15,7 +15,11 @@ def before_request():
 	and request.endpoint[:5] !='auth.' and request.endpoint !='static':
 		return redirect(url_for('auth.unconfirmed'))
 
-
+@auth.after_app_request
+def after_request(response):
+	if current_user.is_authenticated:
+		current_user.ping()
+	return response
 
 
 @auth.route('/login',methods=['GET','POST'])
@@ -75,14 +79,14 @@ def resend_confirmation():
 	return redirect(url_for('main.index'))
 
 @auth.route('/modify',methods=['GET','POST'])
-@fresh_login_required
+@login_required
 def modify():
 	form = ModifyPasForm()
-	
 	user=User.query.filter_by(username=current_user.username).first()
 	if form.validate_on_submit() and user.verify_password(form.oldpassword.data):
 		user.password=form.password.data
 		db.session.add(user)
+		flash(u'成功修改密码','success')
 		return redirect(url_for('main.index'))
 	return render_template('auth/modify_password.html',form=form)
 
