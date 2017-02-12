@@ -1,0 +1,60 @@
+{% extends 'layout.html' %}
+{% import '_macros.html' as macros %}
+{% block title %}用户信息{% endblock %}
+
+{%block page_content%}
+<div class='page-header'>
+	<h1>{{user.username}}</h1>
+	{%if user.name or user.location %}
+	<p>
+		{% if user.name %}{{user.name}}{%endif%}
+		{% if user.location%}
+			来自 <a href="http://maps.baidu.com/?q={{user.location}}">
+			{{user.location}}
+		</a>
+		{%endif%}
+	</p>
+	{%endif%}
+	{%if current_user.is_administrator()%}
+	<p><a href="mailto:{{user.email}}">{{user.email}}</a></p>
+	{%endif%}
+	{%if user.about_me%}<p>{{user.about_me}}</p>{% endif %}
+	<p>
+		加入时间  {{moment(user.member_since).format('LLL')}}.
+		最近登录  {{moment(user.last_seen).fromNow()}}.
+	</p>
+	<p>{{ user.posts.count() }} 博客文章.</p>
+	<p>
+		{% if current_user.can(Permission.FOLLOW) and user != current_user %}
+			{% if not current_user.is_following(user) %}
+			<a href="{{ url_for('.follow', username=user.username) }}" class="btn btn-primary">关注</a>
+			{% else %}
+			<a href="{{ url_for('.unfollow', username=user.username) }}" class="btn btn-default">取消关注</a>
+			{% endif %}
+		{% endif %}
+		<a href="{{ url_for('.followers', username=user.username) }}">粉丝: <span class="badge">{{ user.followers.count() }}</span></a>
+		<a href="{{ url_for('.followed', username=user.username) }}">正在关注: <span class="badge">{{ user.followed.count() }}</span></a>
+		{% if current_user == user %}
+		<a href="{{url_for('.friends',username=user.username)}}">朋友 :<span class="badge">{{friend_num}}</span></a>
+		{% endif %}
+		{% if current_user.is_authenticated and user != current_user and user.is_following(current_user) and user.is_followed_by(current_user) %}
+		| <span class="label label-default">互相关注中</span>
+		{%elif current_user.is_authenticated and user != current_user and user.is_following(current_user) %}
+		| <span class="label label-default">关注</span>
+		{% endif %}
+	</p>
+	{% if user == current_user %}
+	<a class ='bth bht-default' href="{{url_for('main.user',username=current_user.username)}}">
+		编辑个人信息
+	</a>
+	{%endif%}
+
+</div>
+<h2> {{user.username}} 的博客</h2>
+{%include '_posts.html' %}
+{% if pagination %}
+<div class= "pagination">
+	{{macros.pagination_widget(pagination,'main.checkuser',username=user.username)}}
+</div>
+{%endif%}
+{% endblock %}

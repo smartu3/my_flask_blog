@@ -6,6 +6,8 @@ from . import db
 from itsdangerous import TimedJSONWebSignatureSerializer as Serializer
 from datetime import datetime
 from  . import login_manager
+from markdown import markdown
+import bleach
 
 class Permission:
 	FOLLOW = 0x01
@@ -19,9 +21,11 @@ class AnonymousUser(AnonymousUserMixin):
 		return False
 	def is_administrator(self):
 		return False
+
 login_manager.anonymous_user=AnonymousUser
 
 class Role(db.Model):
+
 	__tablename__='roles'
 	id = db.Column(db.Integer,primary_key = True)
 	name = db.Column(db.String(64),unique = True)
@@ -49,8 +53,18 @@ class Role(db.Model):
 	def __repr__(self):
 		return '<Role %r>' % self.name
 
+class Follow(db.Model):
+	__tablename__='follows'
+	follower_id=db.Column(db.Integer,db.ForeignKey('users.id'),primary_key=True)
+	followed_id=db.Column(db.Integer,db.ForeignKey('users.id'),primary_key=True)
+	timestamp=db.Column(db.DateTime,default=datetime.utcnow)
+
+
+	def __repr__(self):
+		return "<Follower:%r,Followed:%r>" % (self.follower.username,self.followed.username)
 
 class User(UserMixin,db.Model):
+
 	__tablename__='users'
 	id=db.Column(db.Integer,primary_key=True)
 	email = db.Column(db.String(64),unique=True,index=True)
@@ -64,18 +78,53 @@ class User(UserMixin,db.Model):
 	member_since = db.Column(db.DateTime(),default=datetime.utcnow)
 	last_seen = db.Column(db.DateTime(),default = datetime.utcnow)
 	gravator_url = db.Column(db.String(64))
+	posts = db.relationship('Post',backref = 'author',lazy = 'dynamic')
+	comments = db.relationship('Comment',backref="author",lazy="dynamic")
+
+	followed=db.relationship('Follow',foreign_keys=[Follow.follower_id],backref=db.backref('follower',lazy='joined'),lazy='dynamic',
+							cascade='all,delete-orphan')
+	followers=db.relationship('Follow',foreign_keys=[Follow.followed_id],backref=db.backref('followed',lazy='joined'),lazy='dynamic',
+							cascade='all,delete-orphan')
+
+
+	def follow(self,user):
+		if not self.is_following(user):
+			f = Follow(follower=self,followed=user)
+			db.session.add(f)
+	def unfollow(self,user):
+		f = self.followed.filter_by(followed_id=user.id).first()
+		if f:
+			db.session.delete(f)
+
+	def is_following(self,user):
+		return self.followed.filter_by(followed_id=user.id).first() is not None
+
+	def is_followed_by(self,user):
+		return self.followers.filter_by(follower_id=user.id).first() is not None
+
+	def Friend_lists(self):
+		follow_list = self.followed.all()
+		Friend_lists=[]
+		for follow in follow_list:
+			if follow.followed.is_following(self):
+				Friend_lists.append(follow.followed)
+		return Friend_lists
+
+	@property
+	def followed_posts(self):
+		return Post.query.join(Follow,Follow.followed_id==Post.author_id)\
+			.filter(Follow.follower_id==self.id)
 
 	def ping(self):
 		self.last_seen = datetime.utcnow()
 		db.session.add(self)
-
-
 
 	def __init__(self,**kwargs):
 		super(User,self).__init__(**kwargs)
 		if self.role is None:
 			if self.email ==current_app.config['BLOG_ADMIN']:
 				self.role= Role.query.filter_by(permission=0xff).first()
+				self.confirmed = True
 			if self.role is None:
 				self.role = Role.query.filter_by(default=True).first()
 
@@ -113,6 +162,76 @@ class User(UserMixin,db.Model):
 
 	def __repr__(self):
 		return '<User %r>' % self.username
+
+class Post(db.Model):
+
+	__tablename__ = 'posts'
+	id = db.Column(db.Integer,primary_key = True)
+	title = db.Column(db.String(64))
+	body = db.Column(db.Text)
+	body_html = db.Column(db.Text)
+	timestamp = db.Column(db.DateTime, index=True,default = datetime.utcnow)
+	author_id = db.Column(db.Integer,db.ForeignKey('users.id'))
+	comments = db.relationship('Comment',backref='post',lazy='dynamic')
+
+
+	def __repr__(self):
+		return '<Post %r>' % self.title
+
+	@staticmethod
+	def on_changed_body(target,value,oldvalue,initiator):
+		allowed_tags = ['a','abbr','acronym','b','blockquote','code', \
+			'em','i','li','ol','pre','strong','ul','h1','h2','h3','p']
+		target.body_html=bleach.linkify(bleach.clean( \
+			markdown(value,output_format='html'), \
+			tags=allowed_tags,strip=True))
+
+db.event.listen(Post.body,'set',Post.on_changed_body)
+
+
+
+class Comment(db.Model):
+	__tablename__='comments'
+	id=db.Column(db.Integer,primary_key=True)
+	body=db.Column(db.Text)
+	body_html=db.Column(db.Text)
+	timestamp=db.Column(db.DateTime,index=True,default=datetime.utcnow)
+	disabled=db.Column(db.Boolean)
+	author_id=db.Column(db.Integer,db.ForeignKey('users.id'))
+	post_id=db.Column(db.Integer,db.ForeignKey('posts.id'))
+
+
+	def __repr__(self):
+		return '<Comment %d>' % self.id
+
+	@staticmethod
+	def on_changed_body(target,value,oldvalue,initiator):
+		allowed_tags=['a','abbr','acronym','b','code','em','i','strong']
+		target.body_html=bleach.linkify(bleach.clean(markdown(value,output_format='html'),tags=allowed_tags,strip=True))
+
+	def to_json(self):
+		json_post_comments={
+			'url':url_for('api.get_post_comments',id.self.post_id,_external=True),
+			'body':self.body,
+			'body_html':self.body_html,
+			'timestamp':self.timestamp,
+			'author':url_for('api.get_user',id=self.author_id,_external=True),
+			'post':url_for('api.get_post',id=self.post_id,_external=True)
+			}
+		return json_post_comments
+
+	@staticmethod
+	def from_json(json_comment):
+		body=json_comment.get('body')
+		if body is None or body =='':
+			raise ValidationError("Comment does not have a body.")
+		return Comment(body=body)
+
+db.event.listen(Comment.body,'set',Comment.on_changed_body)
+
+
+
+
 
 from . import login_manager
 @login_manager.user_loader

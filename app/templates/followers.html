@@ -1,0 +1,33 @@
+{% extends "layout.html" %}
+{% import "_macros.html" as macros %}
+
+{% block title %}Pump - {{ user.username }}{{ title }} {% endblock %}
+
+{% block page_content %}
+<div class="page-header">
+    <h1> {{ user.username }}{{ title }}</h1>
+</div>
+<table class="table table-hover followers">
+    <thead><tr><th>用户</th><th>时间</th></tr></thead>
+    {% for follow in follows %}
+    <tr>
+        <td>
+            {% if follow.user != user%}
+            <a href="{{ url_for('main.checkuser', username = follow.user.username) }}">
+                {% if user.gravator_url %}
+                <img class="img-rounded img-responsive" src="{{user.gravator_url}}" width='35'height='50'>
+                {% else %}
+                <img class="img-rounded" src="{{url_for('static', filename='favicon.ico')}}" width='35'height='50'>
+                {% endif %}
+                {{ follow.user.username }}
+            </a>
+            {% endif %}
+        </td>
+        <td>{{ moment(follow.timestamp).format('LLL') }}</td>
+    </tr>
+    {% endfor %}
+</table>
+<div class="pagination">
+    {{ macros.pagination_widget(pagination, endpoint, username = user.username) }}
+</div>
+{% endblock %}
