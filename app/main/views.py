@@ -50,6 +50,18 @@ def mypost():
 		return redirect(url_for('main.mypost'))
 	return render_template('mypost.html',pagination=pagination,posts=posts,form=form)
 
+@main.route('/delete_post/<int:id>')
+def delete_post(id):
+	post=Post.query.get_or_404(id)
+	user=post.author
+	if current_user == user or current_user.is_administrator():
+		db.session.delete(post)
+		flash(u"成功删除。",'success')
+		return redirect(url_for("main.posts"))
+	else:
+		abort(404)
+		return redirect(url_for(".index"))
+
 @main.route('/post/<int:id>',methods=['GET','POST'])
 def post(id):
 	post=Post.query.get_or_404(id)
@@ -63,8 +75,7 @@ def post(id):
 	if page == -1:
 		page= (post.comments.count() -1 )/ int(15) +1
 	pagination = post.comments.order_by(Comment.timestamp.asc()).paginate(page,per_page=\
-		int(15),
-	error_out = False)
+		int(15),error_out = False)
 	comments=pagination.items
 	return render_template('post.html',posts=[post],form=form,comments=comments,pagination=pagination)
 
@@ -77,11 +88,20 @@ def edit(id):
 	form = PostForm()
 	if form.validate_on_submit():
 		post.body=form.body.data
+		post.title=form.title.data
 		db.session.add(post)
 		flash(u"已更新","success")
 		return redirect(url_for("main.post",id=post.id))
 	form.body.data=post.body
+	form.title.data=post.title
 	return render_template("edit_post.html",form=form,user=post.author,id=id)
+
+@main.route('/delete-warning/<int:id>')
+def warning(id):
+	if current_user != Post.query.get_or_404(id).author and not current_user.can(Permission.ADMINISTER):
+		abort(403)
+	flash(u"确定删除吗？删除将不可恢复。","danger")
+	return render_template("warning.html",id=id)
 
 @main.route('/moderate')
 @login_required
