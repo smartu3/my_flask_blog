@@ -39,7 +39,7 @@
 						{% if current_user.is_authenticated %}
 						<li><a href="{{url_for('main.show_followed')}}"><span class="glyphicon glyphicon-heart"></span>  关注人博客</a></li>
 						{% endif %}
-						<li><a href="#"><span class="glyphicon glyphicon-fire"></span> 热门博客</a></li>
+						<li><a href="{{url_for('main.popular_post')}}"><span class="glyphicon glyphicon-fire"></span> 热门博客</a></li>
 						{% if current_user.can(Permission.WRITE_ARTICLES) %}
 						<li class="divider"></li>
 						<li><a href="{{url_for('main.mypost')}}"><span class="glyphicon glyphicon-pencil"></span> 我的博客</a></li>

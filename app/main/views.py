@@ -65,6 +65,7 @@ def delete_post(id):
 @main.route('/post/<int:id>',methods=['GET','POST'])
 def post(id):
 	post=Post.query.get_or_404(id)
+	post.clicknum += 1
 	form=CommentForm()
 	if form.validate_on_submit():
 		comment=Comment(body=form.body.data,post=post,author=current_user._get_current_object())
@@ -78,6 +79,14 @@ def post(id):
 		int(15),error_out = False)
 	comments=pagination.items
 	return render_template('post.html',posts=[post],form=form,comments=comments,pagination=pagination)
+
+@main.route('/popular-post')
+def popular_post():
+	page = request.args.get("page",1,type=int)
+	pagination = Post.query.order_by(Post.clicknum.desc()).paginate(page,per_page = \
+		int(15),error_out = False)
+	posts = pagination.items
+	return render_template('popular-posts.html',pagination=pagination,posts=posts)
 
 @main.route('/edit/<int:id>',methods=['GET','POST'])
 @login_required

@@ -7,6 +7,7 @@ from itsdangerous import TimedJSONWebSignatureSerializer as Serializer
 from datetime import datetime
 from  . import login_manager
 from markdown import markdown
+from app.exceptions import ValidationError
 import bleach
 
 class Permission:
@@ -160,6 +161,31 @@ class User(UserMixin,db.Model):
 	def verify_password(self,password):
 		return check_password_hash(self.password_hash,password)
 
+	def generate_auth_token(self,expiration=3600):
+		s = Serializer(current_app.config['SECRET_KEY'],
+						expires_in = expiration)
+		return s.dumps({'id':self.id})
+
+	def verify_auth_token(token):
+		s = Serializer(current_app.config['SECRET_KEY'])
+		try:
+			data = s.loads(token)
+		except:
+			return None
+		return User.query.get(data['id'])
+
+	def to_json(self):
+		json_user={
+			"url":url_for('api.get_user',id=self.id,_external=True),
+			"username":self.username,
+			"member_since":self.member_since,
+			"last_seen":self.last_seen,
+			"posts":url_for('api.get_user_post',id=self.id,_external=True),
+			"followed_posts":url_for('api.get_user_followed_posts',id=self.id,_external=True),
+			"post_count":self.posts.count()
+			}
+		return json_user 
+
 	def __repr__(self):
 		return '<User %r>' % self.username
 
@@ -173,6 +199,7 @@ class Post(db.Model):
 	timestamp = db.Column(db.DateTime, index=True,default = datetime.utcnow)
 	author_id = db.Column(db.Integer,db.ForeignKey('users.id'))
 	comments = db.relationship('Comment',backref='post',lazy='dynamic')
+	clicknum = db.Column(db.Integer,default = 0)
 
 
 	def __repr__(self):
@@ -185,6 +212,29 @@ class Post(db.Model):
 		target.body_html=bleach.linkify(bleach.clean( \
 			markdown(value,output_format='html'), \
 			tags=allowed_tags,strip=True))
+
+	def to_json(self):
+		json_post={
+			"url": url_for('api.get_post',id=self.id,external=True),
+			"title":self.title,
+			"body":self.body,
+			"body_html":self.body_html,
+			"timestamp":self.timestamp,
+			"author":url_for('api.get_user',id=self.author_id,_external=True),
+			"comments":url_for('api.get_post_comments',id=self.id,_external=True),
+			"comment_count":self.comments.count()
+			}
+		return json_post
+
+	@staticmethod
+	def from_json(json_post):
+		body=json_post.get("body")
+		title = json_post.get("title")
+		if body is None or body =="":
+			raise ValidationError("post does not have a body.")
+		if title is None or title =="":
+			raise ValidationError("post does not have a title.")
+		return Post(body=body,title=title)
 
 db.event.listen(Post.body,'set',Post.on_changed_body)
 
