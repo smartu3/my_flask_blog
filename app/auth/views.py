@@ -15,7 +15,7 @@ def before_request():
 	and request.endpoint[:5] !='auth.' and request.endpoint !='static':
 		return redirect(url_for('auth.unconfirmed'))
 
-@auth.after_app_request
+@auth.after_request
 def after_request(response):
 	if current_user.is_authenticated:
 		current_user.ping()
@@ -31,12 +31,13 @@ def login():
 		return redirect(url_for('main.index'))
 	if r_form.register_submit.data and r_form.validate_on_submit():
 		user=User(email=r_form.email.data,username=r_form.username.data,password=r_form.password.data)
+		user.confirmed = True
 		db.session.add(user)
 		db.session.commit()
 		login_user(user)
 		flash(u'注册成功','success')
-		token = user.generate_confirmation_token()
-		send_email(user.email,'Confirmation','auth/email/confirm',user=user,token=token)
+		# token = user.generate_confirmation_token()
+		# send_email(user.email,'Confirmation','auth/email/confirm',user=user,token=token)
 		return redirect(url_for('auth.login'))
 	if l_form.login_submit.data and l_form.validate_on_submit():
 		user = User.query.filter_by(email=l_form.email.data).first()
@@ -97,9 +98,9 @@ def reset1():
 		if User.query.filter_by(email=form.email.data).first():
 			user = User.query.filter_by(email=form.email.data).first()
 			token = user.generate_confirmation_token()
-			send_email(form.email.data,"Confirm your email",'auth/email/resetconfirm',user=user,token=token)
-			flash("一封新的确认邮件已经发往你的邮箱。")
-			return redirect(url_for("main.index"))
+			# send_email(form.email.data,"Confirm your email",'auth/email/resetconfirm',user=user,token=token)
+			# flash("一封新的确认邮件已经发往你的邮箱。")
+			return redirect(url_for("auth.reset2",token=token))
 		else:
 			flash(u"无效的邮箱地址。")
 	return render_template("auth/reset1.html",form=form)
@@ -123,16 +124,16 @@ def resetmail1():
 	if form.validate_on_submit():
 		if current_user.email == form.email.data:
 			token=current_user.generate_confirmation_token()
-			send_email(form.email.data,"Confirm your email.","auth/email/resetconfirmemail",user=current_user,token=token)
-			flash(u"一封新的确认邮件已经发往了你的注册邮箱。")
-			return redirect(url_for("main.index"))
+			# send_email(form.email.data,"Confirm your email.","auth/email/resetconfirmemail",user=current_user,token=token)
+			# flash(u"一封新的确认邮件已经发往了你的注册邮箱。")
+			return redirect(url_for("auth.resetemail2",token=token))
 		else:
 			flash(u"无效的邮箱地址。")
 	return render_template("auth/reset1.html",form=form)
 
 @auth.route('/resetemail2/<token>',methods=['GET','POST'])
 def resetemail2(token):
-	form =ResetEmailForm()
+	form =ModifyEmailForm()
 	if form.validate_on_submit():
 		if User.query.filter_by(email=form.email.data).first():
 			flash(u"该邮箱已经被注册。")

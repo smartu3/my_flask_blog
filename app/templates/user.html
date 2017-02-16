@@ -8,6 +8,7 @@
 		<div class="col-md-4">
 			<div class='page-header'>
 				<h2>{{user.username}}</h2>
+				{{user.email}}
 				{%if user.name or user.location %}
 				<p>
 				{% if user.name %}{{user.name}}{%endif%}
