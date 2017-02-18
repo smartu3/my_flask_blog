@@ -8,7 +8,7 @@ class Config:
 	SQLALCHEMY_COMMIT_ON_TEARDOWN = True
 	BLOG_MAIL_SUBJECT_PREFIX='[Welcome]'
 	BLOG_MAIL_SENDER = '123389602@qq.com'
-	BLOG_ADMIN= os.environ.get('BLOG_ADMIN') or 'zhze93@qq.com' or '123389602@qq.com'
+	BLOG_ADMIN= os.environ.get('BLOG_ADMIN') or 'zhze93@qq.com' 
 	SQLALCHEMY_TRACK_MODIFICATIONS = True
 	UPLOADED_GRAVATORS_DEST = os.getcwd() + '\gravators'
 	@staticmethod
@@ -32,8 +32,7 @@ class TestingConfig(Config):
 		'sqlite:///' + os.path.join(basedir,'data-test.sqlite')
 
 class ProductionConfig(Config):
-	SQLALCHEMY_DATABASE_URI = os.environ.get('DATABASE_URL') or \
-		'sqlite:///' + os.path.join(basedir,'data.sqlite')
+	SQLALCHEMY_DATABASE_URI = SQLALCHEMY_DATABASE_URI = 'mysql+pymysql://<username>:<password>@localhost/pump_pro'
 
 config={
 	'development': DevelopmentConfig,

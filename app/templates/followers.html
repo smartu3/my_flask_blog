@@ -14,8 +14,8 @@
         <td>
             {% if follow.user != user%}
             <a href="{{ url_for('main.checkuser', username = follow.user.username) }}">
-                {% if user.gravator_url %}
-                <img class="img-rounded img-responsive" src="{{user.gravator_url}}" width='35'height='50'>
+                {% if follow.user.gravator_url %}
+                <img class="img-rounded img-responsive" src="{{follow.user.gravator_url}}" width='35'height='50'>
                 {% else %}
                 <img class="img-rounded" src="{{url_for('static', filename='favicon.ico')}}" width='35'height='50'>
                 {% endif %}

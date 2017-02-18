@@ -27,5 +27,5 @@ class PostForm(FlaskForm):
 	submit = SubmitField(u'发布')
 
 class CommentForm(FlaskForm):
-	body=StringField(u'请输入评论',validators=[Required()])
+	body=PageDownField(u'请输入评论',validators=[Required()])
 	submit=SubmitField(u'提交')

@@ -19,10 +19,10 @@
 	<p><a href="mailto:{{user.email}}">{{user.email}}</a></p>
 	{%endif%}
 	{%if user.about_me%}<p>{{user.about_me}}</p>{% endif %}
-	<p>
-		加入时间  {{moment(user.member_since).format('LLL')}}.
-		最近登录  {{moment(user.last_seen).fromNow()}}.
-	</p>
+		<p>
+		注册时间 {{moment(user.member_since).format('LLL')}}.<br/>
+		上一次登录  {{moment(user.last_seen).fromNow()}}.
+		</p>
 	<p>{{ user.posts.count() }} 博客文章.</p>
 	<p>
 		{% if current_user.can(Permission.FOLLOW) and user != current_user %}

@@ -2,16 +2,18 @@
 	{% for post in posts %}
 	<li class="post">
 		<div class="post-thumbnail">
-			<a href="{{ url_for('.checkuser', username=post.author.username) }}">
 				{% if post.author.gravator_url %}
+				<a href="{{post.author.gravator_url}}" target='_blank' >
 				<img class="img-rounded profile-thumbnail" src="{{post.author.gravator_url}}" width="40" height="60">
+				</a>
 				{% else %}
-				<img class="img-rounded profile-thumbnail" src="static/header.jpg" width="40" height="40">
+				<a href="{{ url_for('main.checkuser', username=post.author.username) }}">
+				<img class="img-rounded profile-thumbnail" src="/static/header.jpg" width="40" height="40">
+				</a>
 				{% endif %}
-			</a>
 		</div>
 		<div class="post-content">
-			<h2>{{ post.title }}</h2>
+			<a href="{{url_for('main.post',id=post.id)}}"><h2>{{ post.title }}</h2></a>
 			<div class="post-date">{{ moment(post.timestamp).format('LLL') }}</div>
 			<div class="post-author"><a href="{{ url_for('main.checkuser', username=post.author.username) }}">{{ post.author.username }}</a></div>
 			<div class="post-body">
@@ -22,7 +24,7 @@
 				{%endif%}
 			</div>
 			<div class = "post-footer" >
-				<a href="{{url_for('main.post',id=post.id)}}"
+				<a href="{{url_for('main.post',id=post.id)}}">
 					<span class="label label-default">阅读更多</span>
 				</a>
 				{% if current_user == post.author %}
@@ -30,8 +32,7 @@
 						<span class = "label label-primary">编辑</span>
 					</a>
 				{%elif current_user.is_administrator()%}
-					{#<a href="{{url_for('main.edit',id=post.id)}}">#}
-					<a href="#">
+					<a href="{{url_for('main.edit',id=post.id)}}">
 						<span class="label label-danger">编辑</span>
 					</a>
 				{%endif%}

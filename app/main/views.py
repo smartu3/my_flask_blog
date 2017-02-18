@@ -24,7 +24,11 @@ def posts():
 	pagination = Post.query.order_by(Post.timestamp.desc()).paginate(
 		page,per_page = 10,error_out=False)
 	posts = pagination.items
-	return render_template('allposts.html',posts=posts,pagination=pagination)
+	if len(posts) != 0:
+		return render_template('allposts.html',posts=posts,pagination=pagination)
+	else:
+		flash(u'没有博客','info')
+		return redirect(url_for('main.index'))
 
 @main.route('/followed-posts')
 @login_required

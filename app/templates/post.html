@@ -13,7 +13,7 @@
 				{% if post.author.gravator_url %}
 				<img class="img-rounded profile-thumbnail" src="{{post.author.gravator_url}}" width="40" height="60">
 				{% else %}
-				<img class="img-rounded profile-thumbnail" src="static/header.jpg" width="40" height="40">
+				<img class="img-rounded profile-thumbnail" src="/static/header.jpg" width="40" height="40">
 				{% endif %}
 			</a>
 		</div>
@@ -66,3 +66,8 @@
 </div>
 {% endif %}
 {% endblock %}
+
+{%block scripts%}
+{{super()}}
+{{pagedown.include_pagedown()}}
+{%endblock%}
