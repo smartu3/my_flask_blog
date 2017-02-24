@@ -32,6 +32,12 @@ class TestingConfig(Config):
 		'sqlite:///' + os.path.join(basedir,'data-test.sqlite')
 
 class ProductionConfig(Config):
+	MAIL_SENDER = '123389602@qq.com'
+	MAIL_SERVER = 'smtp.qq.com'
+	MAIL_PORT = 587
+	MAIL_USE_TLS = True
+	MAIL_USERNAME = os.environ.get('MAIL_USERNAME')
+	MAIL_PASSWORD = os.environ.get('MAIL_PASSWORD')
 	SQLALCHEMY_DATABASE_URI = SQLALCHEMY_DATABASE_URI = 'mysql+pymysql://<username>:<password>@localhost/pump_pro'
 
 config={

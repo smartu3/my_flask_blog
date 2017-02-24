@@ -98,11 +98,11 @@ def reset1():
 		if User.query.filter_by(email=form.email.data).first():
 			user = User.query.filter_by(email=form.email.data).first()
 			token = user.generate_confirmation_token()
-			# send_email(form.email.data,"Confirm your email",'auth/email/resetconfirm',user=user,token=token)
-			# flash("一封新的确认邮件已经发往你的邮箱。")
-			return redirect(url_for("auth.reset2",token=token))
+			send_email(form.email.data,"Confirm your email",'auth/email/resetconfirm',user=user,token=token)
+			flash(u"一封新的确认邮件已经发往你的邮箱。","success")
+			return redirect(url_for("main.index"))
 		else:
-			flash(u"无效的邮箱地址。")
+			flash(u"无效的邮箱地址。","warning")
 	return render_template("auth/reset1.html",form=form)
 
 @auth.route('/reset2/<token>',methods=['GET','POST'])
